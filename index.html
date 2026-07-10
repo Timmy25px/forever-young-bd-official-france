@@ -97,7 +97,6 @@ Page 1
 
 </div>
 
-
 <script>
 
 let images = [];
@@ -107,8 +106,6 @@ let current = 0;
 const imgEl = document.getElementById("pageImage");
 const pageLabel = document.getElementById("pageLabel");
 
-
-// Extensions acceptées
 const extensions = [
   "jpg",
   "jpeg",
@@ -116,8 +113,6 @@ const extensions = [
   "webp"
 ];
 
-
-// Recherche automatique bande_d1, bande_d2...
 async function loadImages(){
 
   let i = 1;
@@ -148,6 +143,11 @@ async function loadImages(){
 
   }
 
+  const aSuivreExiste = await checkImage("a_suivre.png");
+
+  if(aSuivreExiste){
+    images.push("a_suivre.png");
+  }
 
   if(images.length === 0){
 
@@ -158,12 +158,9 @@ async function loadImages(){
 
   }
 
-
   update();
 
 }
-
-
 
 function checkImage(src){
 
@@ -181,8 +178,6 @@ function checkImage(src){
 
 }
 
-
-
 function update(){
 
  imgEl.src = images[current];
@@ -192,8 +187,6 @@ function update(){
  " / " + images.length;
 
 }
-
-
 
 function next(){
 
@@ -207,8 +200,6 @@ function next(){
 
 }
 
-
-
 function prev(){
 
  if(current > 0){
@@ -221,13 +212,9 @@ function prev(){
 
 }
 
-
-
 document.getElementById("nextBtn").onclick = next;
 
 document.getElementById("prevBtn").onclick = prev;
-
-
 
 window.addEventListener("wheel",(e)=>{
 
@@ -240,10 +227,7 @@ window.addEventListener("wheel",(e)=>{
 
 },{passive:true});
 
-
-
 let startX=null;
-
 
 document.querySelector(".viewer")
 .addEventListener("touchstart",e=>{
@@ -252,14 +236,11 @@ document.querySelector(".viewer")
 
 });
 
-
-
 document.querySelector(".viewer")
 .addEventListener("touchend",e=>{
 
  const diff =
  e.changedTouches[0].clientX-startX;
-
 
  if(Math.abs(diff)>40){
 
@@ -272,10 +253,7 @@ document.querySelector(".viewer")
 
 });
 
-
-
 loadImages();
-
 
 </script>
 
