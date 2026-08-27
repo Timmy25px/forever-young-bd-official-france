@@ -224,9 +224,6 @@ body::after {
     isolation: isolate;
 }
 
-/*
-   Petit effet papier.
-*/
 .page::before {
     content: "";
 
@@ -238,7 +235,7 @@ body::after {
     opacity: .13;
 
     background-image:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='paper'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.08' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23paper)' opacity='.25'/%3E%3C/svg%3E");
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Cfilter id='paper'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.08' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23paper)' opacity='.25'/%3E%3C/svg%3E");
 
     z-index: -1;
 }
@@ -464,10 +461,6 @@ body::after {
     }
 }
 
-/* --------------------------------------------------
-   PETITS ÉCRANS
--------------------------------------------------- */
-
 @media (max-width: 550px) {
 
     .topbar {
@@ -558,10 +551,6 @@ body::after {
     }
 }
 
-/* --------------------------------------------------
-   TRÈS PETIT MOBILE
--------------------------------------------------- */
-
 @media (max-width: 380px) {
 
     .content {
@@ -580,10 +569,6 @@ body::after {
         font-size: 7.4pt;
     }
 }
-
-/* --------------------------------------------------
-   IMPRESSION
--------------------------------------------------- */
 
 @media print {
 
@@ -614,8 +599,6 @@ body::after {
 
 <body>
 
-<!-- BARRE DE RECHERCHE -->
-
 <div class="topbar">
 
     <input
@@ -635,23 +618,15 @@ body::after {
 </div>
 
 
-<!-- LOGO -->
-
 <header class="logo-zone">
     <img src="logoFY.png" alt="Forever Young">
 </header>
 
 
-<!-- LES PAGES SONT CRÉÉES AUTOMATIQUEMENT ICI -->
-
 <main id="book"></main>
 
 
 <script>
-
-/* ==================================================
-   CONFIGURATION
-================================================== */
 
 const TEXT_FILE = "foreveryoung.txt";
 
@@ -666,10 +641,6 @@ const MOODS = {
     espoir: "#a0ccbe"
 };
 
-
-/* ==================================================
-   CHARGEMENT DU FICHIER
-================================================== */
 
 async function loadBook() {
 
@@ -731,19 +702,19 @@ function parseText(text) {
 
     for (let i = 0; i < lines.length; i++) {
 
-        const raw = lines[i];
-
-        const line = raw.trim();
+        let line = lines[i].trim();
 
         if (!line) {
             continue;
         }
 
 
-        /* AMBIANCE */
+        /* ==========================================
+           AMBIANCE
+        ========================================== */
 
         const mood = line.match(
-            /^\[AMBIANCE:(neutre|nostalgie|tristesse|tension|joie|espoir)\]$/i
+            /^\s*\[\s*AMBIANCE\s*:\s*(neutre|nostalgie|tristesse|tension|joie|espoir)\s*\]\s*$/i
         );
 
         if (mood) {
@@ -754,9 +725,13 @@ function parseText(text) {
         }
 
 
-        /* SAUT DE PAGE */
+        /* ==========================================
+           SAUT DE PAGE
+        ========================================== */
 
-        if (line === "[SAUT_PAGE]") {
+        if (
+            /^\s*\[\s*SAUT[_ ]?PAGE\s*\]\s*$/i.test(line)
+        ) {
 
             elements.push({
                 type: "pagebreak",
@@ -767,29 +742,16 @@ function parseText(text) {
         }
 
 
-        /* SÉPARATEUR */
-
-        if (line === "---") {
-
-            elements.push({
-                type: "separator"
-            });
-
-            continue;
-        }
-
-
-        /* GROS TITRE */
+        /* ==========================================
+           SÉPARATEUR
+        ========================================== */
 
         if (
-            line.startsWith("**") &&
-            line.endsWith("**") &&
-            !line.startsWith("***")
+            /^\s*-{3,}\s*$/.test(line)
         ) {
 
             elements.push({
-                type: "title",
-                text: line.slice(2, -2).trim(),
+                type: "separator",
                 mood: currentMood
             });
 
@@ -797,39 +759,114 @@ function parseText(text) {
         }
 
 
-        /* SOUS-TITRE */
+        /* ==========================================
+           GROS TITRE
+        ========================================== */
 
         if (
-            line.startsWith("*") &&
-            line.endsWith("*") &&
-            !line.startsWith("**")
+            /^\s*\*\*(?!\*)[\s\S]*\*\*\s*$/.test(line)
         ) {
 
-            elements.push({
-                type: "subtitle",
-                text: line.slice(1, -1).trim(),
-                mood: currentMood
-            });
+            const title = line
+                .replace(/^\s*\*\*/, "")
+                .replace(/\*\*\s*$/, "")
+                .trim();
+
+            if (title) {
+
+                elements.push({
+                    type: "title",
+                    text: title,
+                    mood: currentMood
+                });
+
+            }
 
             continue;
         }
 
 
-        /* CITATION */
+        /* ==========================================
+           SOUS-TITRE
+        ========================================== */
 
-        if (line.startsWith(">")) {
+        if (
+            /^\s*\*(?!\*)[\s\S]*\*\s*$/.test(line)
+        ) {
 
-            elements.push({
-                type: "quote",
-                text: line.slice(1).trim(),
-                mood: currentMood
-            });
+            const subtitle = line
+                .replace(/^\s*\*/, "")
+                .replace(/\*\s*$/, "")
+                .trim();
+
+            if (subtitle) {
+
+                elements.push({
+                    type: "subtitle",
+                    text: subtitle,
+                    mood: currentMood
+                });
+
+            }
 
             continue;
         }
 
 
-        /* TEXTE */
+        /* ==========================================
+           CITATION
+        ========================================== */
+
+        if (
+            /^\s*>/.test(line)
+        ) {
+
+            const quote = line
+                .replace(/^\s*>\s?/, "")
+                .trim();
+
+            if (quote) {
+
+                elements.push({
+                    type: "quote",
+                    text: quote,
+                    mood: currentMood
+                });
+
+            }
+
+            continue;
+        }
+
+
+        /* ==========================================
+           NETTOYAGE DES BALISES
+        ========================================== */
+
+        line = line
+            .replace(
+                /\[\s*AMBIANCE\s*:\s*(?:neutre|nostalgie|tristesse|tension|joie|espoir)\s*\]/gi,
+                ""
+            )
+            .replace(
+                /\[\s*SAUT[_ ]?PAGE\s*\]/gi,
+                ""
+            )
+            .trim();
+
+
+        /* ==========================================
+           SI LA LIGNE EST VIDE APRÈS NETTOYAGE
+        ========================================== */
+
+        if (!line) {
+            continue;
+        }
+
+
+        /* ==========================================
+           TEXTE NORMAL
+        ========================================== */
 
         elements.push({
             type: "paragraph",
@@ -841,10 +878,6 @@ function parseText(text) {
     return elements;
 }
 
-
-/* ==================================================
-   CRÉATION D'UN ÉLÉMENT HTML
-================================================== */
 
 function createElement(element) {
 
@@ -890,10 +923,6 @@ function createElement(element) {
     return wrapper;
 }
 
-
-/* ==================================================
-   CRÉATION DES PAGES
-================================================== */
 
 function buildBook(text) {
 
@@ -947,10 +976,6 @@ function buildBook(text) {
 
         page.dataset.mood = currentMood;
 
-        /*
-           Si le contenu dépasse la hauteur disponible,
-           on déplace le dernier élément sur la page suivante.
-        */
 
         if (page.scrollHeight > page.clientHeight + 5) {
 
@@ -970,10 +995,6 @@ function buildBook(text) {
     updateBackground();
 }
 
-
-/* ==================================================
-   CRÉATION D'UNE PAGE
-================================================== */
 
 function createPage(number, mood) {
 
@@ -1006,10 +1027,6 @@ function createPage(number, mood) {
     return page;
 }
 
-
-/* ==================================================
-   CHANGEMENT DU FOND EN FONCTION DE LA PAGE
-================================================== */
 
 function updateBackground() {
 
@@ -1050,10 +1067,6 @@ function updateBackground() {
     );
 }
 
-
-/* ==================================================
-   RECHERCHE PAR NUMÉRO DE PAGE
-================================================== */
 
 function searchPage() {
 
@@ -1135,10 +1148,6 @@ document
     });
 
 
-/* ==================================================
-   FOND QUI SUIT LA PAGE
-================================================== */
-
 window.addEventListener(
     "scroll",
     updateBackground,
@@ -1150,10 +1159,6 @@ window.addEventListener(
     updateBackground
 );
 
-
-/* ==================================================
-   PROTECTION DU TEXTE
-================================================== */
 
 document.addEventListener(
     "contextmenu",
@@ -1209,10 +1214,6 @@ document.addEventListener(
     }
 );
 
-
-/* ==================================================
-   LANCEMENT
-================================================== */
 
 loadBook();
 
